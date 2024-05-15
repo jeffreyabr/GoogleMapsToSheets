@@ -7,14 +7,15 @@ const LOC_BASIS_LAT_LON = "ENTER_COORDINATES_IN_THE_AREA_YOU_ARE_ADDING_PLACES_F
 function COMBINED2(text) {
   var API_KEY = 'YOUR_API_KEY_GOES_HERE';
   var baseUrl = 'https://maps.googleapis.com/maps/api/place/findplacefromtext/json';
-  var queryUrl = baseUrl + '?input=' + text + '&inputtype=textquery&key=' + API_KEY + "&locationbias=point:" + LOC_BASIS_LAT_LON;
+  var encodedText = encodeURIComponent(text);
+  var queryUrl = `${baseUrl}?input=${encodedText}&inputtype=textquery&key=${API_KEY}&locationbias=point:${LOC_BASIS_LAT_LON}`;
   var response = UrlFetchApp.fetch(queryUrl);
   var json = response.getContentText();
   var placeId = JSON.parse(json);
   var ID = placeId.candidates[0].place_id;
   var fields = 'name,formatted_address,formatted_phone_number,website,url,types,opening_hours';
   var baseUrl2 = 'https://maps.googleapis.com/maps/api/place/details/json?placeid=';
-  var queryUrl2 = baseUrl2 + ID + '&fields=' + fields + '&key='+ API_KEY + "&locationbias=point:" + LOC_BASIS_LAT_LON;
+  var queryUrl2 = `${baseUrl2}${ID}&fields=${fields}&key=${API_KEY}&locationbias=point:${LOC_BASIS_LAT_LON}`;
 
   if (ID == '') {
     return 'Give me a Google Places URL...';
@@ -27,16 +28,16 @@ function COMBINED2(text) {
   var weekdays = '';
   if (place.opening_hours && place.opening_hours.weekday_text) {
     place.opening_hours.weekday_text.forEach((weekdayText) => {
-      weekdays += ( weekdayText + '\r\n' );
-    } );
+      weekdays += (weekdayText + '\r\n');
+    });
   }
 
   var data = [
-    place.formatted_address,
-    place.formatted_phone_number,
-    place.website,
-    place.url,
-    weekdays.trim()
+    place.formatted_address || '',
+    place.formatted_phone_number || '',
+    place.website || '',
+    place.url || '',
+    weekdays.trim() || ''
   ];
 
   return data;
@@ -57,9 +58,37 @@ function writeToSheet() {
   }
 }
 
+function highlightIfChanged(range, newData) {
+  const sheet = range.getSheet();
+  const oldData = range.getValues();
+  for (let i = 0; i < oldData.length; i++) {
+    for (let j = 0; j < oldData[i].length; j++) {
+      if (oldData[i][j] !== newData[i][j]) {
+        range.getCell(i + 1, j + 1).setBackground('yellow');
+      }
+    }
+  }
+  range.setValues(newData);
+}
+
+function refreshData() {
+  const sheet = SpreadsheetApp.getActiveSheet();
+  const FIRST_ROW = 2;
+  const sourceData = sheet.getRange(FIRST_ROW, 1, sheet.getLastRow()-FIRST_ROW+1, 6)
+                          .getValues().filter(row => String(row[0]));
+  for (let i = 0; i < sourceData.length; i++) {
+    const sourceRow = sourceData[i];
+    const text = sourceRow[0];
+    const newData = COMBINED2(text);
+    const range = sheet.getRange(FIRST_ROW + i, 2, 1, newData.length);
+    highlightIfChanged(range, [newData]);
+  }
+}
+
 function onOpen() {
   const ui = SpreadsheetApp.getUi();  
   ui.createMenu("Custom Menu")
-      .addItem("Get place info","writeToSheet")
+      .addItem("Get place info", "writeToSheet")
+      .addItem("Refresh Data", "refreshData")
       .addToUi();
 }
