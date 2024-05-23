@@ -3,7 +3,7 @@
 // in NYC.
 // You can get this from the url of a Google Maps search.
 const DEFAULT_LOC_BASIS_LAT_LON = "ENTER_COORDINATES_IN_THE_AREA_YOU_ARE_ADDING_PLACES_FOR_HERE"; // e.g. "37.7644856,-122.4472203"
-const DEFAULT_FIELDS_TO_FETCH = 'formatted_address,formatted_phone_number,website,url,opening_hours';
+const DEFAULT_FIELDS_TO_FETCH = 'formatted_address,formatted_phone_number,website,url,opening_hours,editorial_summary';
 
 // Set Location Bias
 function setLocationBias() {
@@ -75,6 +75,8 @@ function COMBINED2(text) {
     var data = fields.split(',').map(field => {
       if (field.trim() === 'opening_hours') {
         return (place.opening_hours && place.opening_hours.weekday_text) ? place.opening_hours.weekday_text.join('\n') : '';
+      } else if (field.trim() === 'editorial_summary') {
+        return (place.editorial_summary && place.editorial_summary.overview) ? place.editorial_summary.overview : '';
       } else {
         return place[field.trim()] || '';
       }
@@ -83,7 +85,7 @@ function COMBINED2(text) {
     return data;
   } catch (error) {
     Logger.log('Error fetching place data: ' + error.message);
-    return ['Error', '', '', '', '', ''];
+    return ['Error', '', '', '', '', '', ''];
   }
 }
 
@@ -93,7 +95,6 @@ function writeToSheet() {
   const FIRST_ROW = 2;
   const sourceData = sheet.getRange(FIRST_ROW, 1, sheet.getLastRow() - FIRST_ROW + 1, 6)
                           .getValues().filter(row => String(row[0]));
-  const totalRows = sourceData.length;
 
   for (let i = 0; i < sourceData.length; i++) {
     const sourceRow = sourceData[i];
@@ -130,7 +131,6 @@ function refreshData() {
   const FIRST_ROW = 2;
   const sourceData = sheet.getRange(FIRST_ROW, 1, sheet.getLastRow() - FIRST_ROW + 1, 6)
                           .getValues().filter(row => String(row[0]));
-  const totalRows = sourceData.length;
 
   for (let i = 0; i < sourceData.length; i++) {
     const sourceRow = sourceData[i];
