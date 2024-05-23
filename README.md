@@ -14,5 +14,12 @@ You can get an API key from Google API Console. Basically, you need to:
 4. Use this API key in your JavaScript code.
 
 The script is run with a cusom menu on the Google Sheet called Get Place Info.
+
+There are currently four main functions:
+
+1. Fetch place data (for anything that does not have a vlue in column E)
+2. Refresh place data for all Google Sheet entries (any differences between data already in a cell and found on Google will be highlighted in yellow).
+3. Set Location Bias
+4. Set Fields to fetch data
     
 To use this with Google MyMap, you will import your Google Sheet as a layer and choose the address and name columns when asked where to place and how to name your markers. 
