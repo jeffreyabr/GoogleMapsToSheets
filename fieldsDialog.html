@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+  </head>
+  <body>
+    <h3>Select Fields to Fetch</h3>
+    <form id="fieldsForm">
+      <input type="checkbox" id="formatted_address" name="fields" value="formatted_address" checked>
+      <label for="formatted_address">Formatted Address</label><br>
+      <input type="checkbox" id="formatted_phone_number" name="fields" value="formatted_phone_number" checked>
+      <label for="formatted_phone_number">Formatted Phone Number</label><br>
+      <input type="checkbox" id="website" name="fields" value="website" checked>
+      <label for="website">Website</label><br>
+      <input type="checkbox" id="url" name="fields" value="url" checked>
+      <label for="url">Google Maps URL</label><br>
+      <input type="checkbox" id="opening_hours" name="fields" value="opening_hours" checked>
+      <label for="opening_hours">Opening Hours</label><br><br>
+      <input type="button" value="Save" onclick="saveFields()">
+    </form>
+
+    <script>
+      function saveFields() {
+        const form = document.getElementById('fieldsForm');
+        const fields = Array.from(form.elements)
+                            .filter(el => el.checked)
+                            .map(el => el.value)
+                            .join(',');
+        google.script.run
+              .withSuccessHandler(() => google.script.host.close())
+              .saveSelectedFields(fields);
+      }
+    </script>
+  </body>
+</html>
